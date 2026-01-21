@@ -1,6 +1,9 @@
 # Tower Bloxx RL Agent 🏗️🤖
 
-A reinforcement learning system that learns to play the mobile game **Tower Bloxx** by connecting to an Android device via USB/ADB.
+A reinforcement learning system that learns to play the mobile game **Tower Bloxx** by connecting to an Android device via USB/ADB or using the Pygame simulation.
+
+<img width="1254" height="956" alt="image" src="https://github.com/user-attachments/assets/307a76cf-d429-415b-a61f-76e706e6565e" />
+
 
 ## 🎮 About the Game
 
