@@ -96,11 +96,12 @@ class TowerBloxEnv(gym.Env):
         self.screen_width, self.screen_height = self.adb.get_screen_size()
         
         # Initialize components
+        # normalize=False to output uint8 (0-255) - SB3's CnnPolicy normalizes internally
         self.screen_capture = ScreenCapture(
             adb=self.adb,
             target_size=(self.frame_width, self.frame_height),
             grayscale=True,
-            normalize=True,
+            normalize=False,  # Keep as uint8 for SB3 compatibility
         )
         
         self.action_executor = ActionExecutor(
@@ -127,12 +128,13 @@ class TowerBloxEnv(gym.Env):
         self._raw_frame: Optional[np.ndarray] = None
         
         # Define spaces
-        # Observation: stacked grayscale frames
+        # Observation: stacked grayscale frames as uint8 (0-255)
+        # SB3's CnnPolicy expects uint8 images and normalizes internally
         self.observation_space = spaces.Box(
-            low=0.0,
-            high=1.0,
+            low=0,
+            high=255,
             shape=(self.frame_height, self.frame_width, frame_stack),
-            dtype=np.float32,
+            dtype=np.uint8,
         )
         
         # Action: discrete (wait or tap)
@@ -201,12 +203,12 @@ class TowerBloxEnv(gym.Env):
         
         # Build info dictionary
         info = {
-            'episode': self._episode_count,
+            'episode_id': self._episode_count,
             'step': 0,
             'game_state': 'playing',
         }
         
-        return observation.astype(np.float32), info
+        return observation.astype(np.uint8), info
     
     def step(
         self,
@@ -235,11 +237,15 @@ class TowerBloxEnv(gym.Env):
             time.sleep(0.03)  # ~30 FPS timing
             
             # Capture new frame
+            # Use raw frame for robust state detection (color-based)
+            raw_frame = self.screen_capture.capture_raw()
+            game_state_str = self.screen_capture.detect_game_state(raw_frame)
+            
             self._previous_frame = self._current_frame
-            self._current_frame = self.screen_capture.capture()
+            self._current_frame = self.screen_capture.preprocess(raw_frame)
             
             # Update game state
-            self._update_game_state()
+            self._update_game_state(game_state_str)
             
             # Calculate reward
             reward, components = self.reward_shaper.calculate_reward(
@@ -267,7 +273,7 @@ class TowerBloxEnv(gym.Env):
         # Build info dictionary
         step_time = time.time() - self._step_start_time
         info = {
-            'episode': self._episode_count,
+            'episode_id': self._episode_count,
             'step': self._current_step,
             'action': action,
             'action_name': self.action_executor.get_action_name(action),
@@ -305,20 +311,24 @@ class TowerBloxEnv(gym.Env):
             )
         
         return (
-            observation.astype(np.float32),
+            observation.astype(np.uint8),
             float(reward_accumulator),
             terminated,
             truncated,
             info,
         )
     
-    def _update_game_state(self) -> None:
+    def _update_game_state(self, game_state_str: Optional[str] = None) -> None:
         """Update internal game state from current frame."""
         # Detect game over
-        game_over = self.reward_shaper.detect_game_over(
-            self._current_frame,
-            self._previous_frame,
-        )
+        # Prioritize robust detection from screen_capture
+        if game_state_str == 'game_over':
+            game_over = True
+        else:
+            game_over = self.reward_shaper.detect_game_over(
+                self._current_frame,
+                self._previous_frame,
+            )
         
         # Estimate tower height
         tower_height = self.reward_shaper.estimate_tower_height(self._current_frame)

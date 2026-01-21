@@ -14,7 +14,14 @@ from stable_baselines3 import PPO
 from stable_baselines3.common.callbacks import CallbackList, EvalCallback
 from stable_baselines3.common.vec_env import DummyVecEnv, VecTransposeImage
 
+from stable_baselines3.common.monitor import Monitor
+
 from ..environment.mobile_game_env import TowerBloxEnv
+try:
+    from ..simulation.towerblox_sim import TowerBloxSimEnv
+except ImportError:
+    TowerBloxSimEnv = None
+    
 from ..utils.config_loader import ConfigLoader
 from ..utils.logger import get_logger, setup_logger
 from ..utils.gpu_monitor import GPUMonitor
@@ -48,6 +55,8 @@ class Trainer:
         config_dir: Optional[str] = None,
         device: str = "auto",
         log_dir: str = "./logs",
+        use_simulator: bool = False,
+        render_mode: Optional[str] = None,
     ):
         """
         Initialize trainer.
@@ -56,7 +65,16 @@ class Trainer:
             config_dir: Path to configuration directory
             device: Device to use ('auto', 'cuda', 'cpu')
             log_dir: Directory for logs and checkpoints
+            use_simulator: Whether to use the simulator instead of ADB
+            render_mode: Render mode ('human' or None)
         """
+        self.use_simulator = use_simulator
+        self.render_mode = render_mode
+        
+        if use_simulator and TowerBloxSimEnv is None:
+             logger.warning("TowerBloxSimEnv not found (pygame not installed?), falling back to ADB")
+             self.use_simulator = False
+             
         # Setup logging
         setup_logger(log_dir=os.path.join(log_dir, "training_logs"))
         
@@ -120,14 +138,28 @@ class Trainer:
         Returns:
             Vectorized environment
         """
-        def make_env():
-            env = TowerBloxEnv(
-                config_dir=str(self.config_loader.config_dir),
-                render_mode=render_mode,
-                show_visualization=show_visualization,
-            )
-            return env
+        # Use instance render_mode if not overridden
+        render_mode = render_mode or self.render_mode
         
+        def make_env():
+            if self.use_simulator:
+                logger.info("Creating Simulator Environment")
+                env = TowerBloxSimEnv(
+                    render_mode=render_mode,
+                    grayscale=True,
+                    frame_stack=4
+                )
+            else:
+                env = TowerBloxEnv(
+                    config_dir=str(self.config_loader.config_dir),
+                    render_mode=render_mode,
+                    show_visualization=show_visualization,
+                )
+            
+            # Wrap with Monitor to track episode stats
+            env = Monitor(env)
+            return env
+                
         # Create vectorized environment
         env = DummyVecEnv([make_env])
         

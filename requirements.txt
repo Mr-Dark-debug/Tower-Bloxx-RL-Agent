@@ -10,7 +10,7 @@ torchvision
 stable-baselines3
 gymnasium
 shimmy
-
+pygame
 # Screen Capture & Mobile Automation
 opencv-python
 Pillow
@@ -22,6 +22,7 @@ pure-python-adb
 # Configuration & Logging
 PyYAML
 tqdm
+rich
 tensorboard
 
 # Visualization & Monitoring
