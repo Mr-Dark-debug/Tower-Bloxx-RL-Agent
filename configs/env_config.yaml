@@ -1,0 +1,129 @@
+# Tower Bloxx RL Agent - Environment Configuration
+# Device: Android Phone with Tower Bloxx game
+
+environment:
+  name: "TowerBloxEnv"
+  version: "1.0.0"
+
+# Observation Settings
+observation:
+  # Target frame size (Atari standard, proven to work well)
+  frame_width: 84
+  frame_height: 84
+  # Number of frames to stack (captures motion/velocity)
+  frame_stack: 4
+  # Convert to grayscale (reduces input dimensions by 3x)
+  grayscale: true
+  # Normalize pixel values to [0, 1]
+  normalize: true
+
+# Action Settings
+action:
+  # Action space type
+  type: "discrete"
+  # Number of discrete actions
+  n_actions: 2 # [Wait, Tap] - simplified for Tower Bloxx
+  # Action descriptions
+  actions:
+    0: "wait" # Do nothing, let crane swing
+    1: "tap" # Release the block
+
+# Timing Settings
+timing:
+  # Action repeat (frame skip) - execute action for N frames
+  # Reduced due to slow ADB capture speed
+  frame_skip: 2
+  # Delay between actions in milliseconds
+  action_delay_ms: 50
+  # Maximum episode length in steps
+  max_episode_steps: 200
+  # Frame rate target for capture
+  target_fps: 10
+
+# Screen Regions (based on 1084x2412 resolution)
+screen_regions:
+  # Game play area (crop out UI elements)
+  game_area:
+    x: 0
+    y: 200
+    width: 1084
+    height: 2000
+
+  # Score detection region (top right)
+  score_region:
+    x: 900
+    y: 100
+    width: 150
+    height: 100
+
+  # Coin counter region
+  coin_region:
+    x: 900
+    y: 150
+    width: 150
+    height: 80
+
+  # Block counter (bottom left)
+  block_counter:
+    x: 0
+    y: 2300
+    width: 150
+    height: 100
+
+  # Play button region (menu screen)
+  quick_game_button:
+    x: 150
+    y: 900
+    width: 300
+    height: 80
+
+  # Play again button (game over screen)
+  play_again_button:
+    x: 400
+    y: 1400
+    width: 300
+    height: 100
+
+  # Crane/block detection area (upper portion of game)
+  crane_area:
+    x: 0
+    y: 200
+    width: 1084
+    height: 800
+
+  # Tower/stack detection area (lower-middle of game)
+  tower_area:
+    x: 200
+    y: 800
+    width: 700
+    height: 1200
+
+# Reward Configuration
+rewards:
+  # Perfect block placement (perfectly aligned)
+  perfect_placement: 5.0
+  # Good block placement (slight offset but stable)
+  good_placement: 2.0
+  # Ok placement (offset but survives)
+  ok_placement: 1.0
+  # Block placed but tower wobbles
+  wobbly_placement: 0.3
+  # Block missed entirely / tower collapsed
+  game_over: -10.0
+  # Per-step penalty (encourages faster decisions)
+  step_penalty: -0.01
+  # Height bonus (per new floor added)
+  height_bonus: 0.5
+  # Coin collected
+  coin_collected: 1.0
+
+# Game State Detection
+state_detection:
+  # Colors for detecting game states (in BGR format for OpenCV)
+  menu_background_color: [211, 187, 148] # Menu blue background
+  game_over_color: [50, 50, 50] # Dark overlay for game over
+  block_color: [20, 165, 240] # Orange/yellow block color (BGR)
+
+  # Thresholds
+  game_over_threshold: 0.8
+  block_detection_threshold: 0.7

@@ -1,0 +1,97 @@
+# Tower Bloxx RL Agent - Device Configuration
+# Android device settings for ADB connection
+
+device:
+  # Device serial (from `adb devices`)
+  serial: "23111123BN000057"
+
+  # Screen resolution
+  screen_width: 1084
+  screen_height: 2412
+  screen_density: 420
+
+# ADB Settings
+adb:
+  # ADB executable path (use system PATH by default)
+  executable: "adb"
+
+  # Connection type: usb or tcpip
+  connection_type: "usb"
+
+  # For TCP/IP connection (if using wireless ADB)
+  tcpip:
+    host: "192.168.1.100"
+    port: 5555
+
+  # Timeout settings (milliseconds)
+  command_timeout: 5000
+  connection_timeout: 10000
+
+  # Retry settings
+  max_retries: 3
+  retry_delay: 1000
+
+# Screen Capture Settings
+screen_capture:
+  # Method: adb_screencap, scrcpy, or minicap
+  # adb_screencap: Built-in, reliable but slower
+  # scrcpy: Fast, requires scrcpy installed
+  # minicap: Fastest, requires minicap on device
+  method: "adb_screencap"
+
+  # Fallback method if primary fails
+  fallback_method: "adb_screencap"
+
+  # Target FPS for capture
+  target_fps: 30
+
+  # Compression quality (for scrcpy)
+  compression_quality: 80
+
+  # Max resolution for capture (reduces data transfer)
+  max_resolution: 540 # Width, aspect ratio maintained
+
+  # Buffer size for frame queue
+  frame_buffer_size: 5
+
+# Input Settings
+input:
+  # Touch input method: adb_input, sendevent, or app_process
+  method: "adb_input"
+
+  # Tap duration in milliseconds
+  tap_duration: 50
+
+  # Swipe duration in milliseconds
+  swipe_duration: 300
+
+  # Input delay after action (let game respond)
+  post_action_delay: 50
+
+# Game Package Info
+game:
+  # Tower Bloxx package name
+  package_name: "com.gameloft.android.ANMP.classic.TowerBloxx"
+
+  # Main activity
+  main_activity: "com.gameloft.android.ANMP.classic.TowerBloxx.TowerBloxx"
+
+  # Alternative package names (different versions)
+  alternative_packages:
+    - "com.gameloft.android.games.tower"
+    - "com.tower.bloxx"
+
+# Monitoring
+monitoring:
+  # Log device temperature
+  log_temperature: true
+
+  # Log battery level
+  log_battery: true
+
+  # Check interval (seconds)
+  check_interval: 60
+
+  # Warning thresholds
+  temperature_warning: 45 # Celsius
+  battery_warning: 15 # Percent

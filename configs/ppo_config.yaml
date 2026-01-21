@@ -1,0 +1,123 @@
+# Tower Bloxx RL Agent - PPO Configuration
+# Optimized for RTX 3050 Ti (4GB VRAM) and Tower Bloxx game
+
+algorithm:
+  name: "PPO"
+  version: "stable-baselines3"
+
+# PPO Hyperparameters
+# Reference: Stable-Baselines3 documentation + Atari defaults
+hyperparameters:
+  # Learning rate - standard value for PPO
+  learning_rate: 0.0003 # 3e-4
+
+  # Steps to collect before each update
+  # Higher = more experience before learning, more stable
+  n_steps: 256
+
+  # Mini-batch size for gradient updates
+  # Reduced for VRAM constraints (RTX 3050 Ti has 4GB)
+  batch_size: 64
+
+  # Number of optimization epochs per update
+  n_epochs: 10
+
+  # Discount factor for future rewards
+  # 0.99 = long-term focus, good for games
+  gamma: 0.99
+
+  # GAE lambda for advantage estimation
+  gae_lambda: 0.95
+
+  # PPO clip range (prevents too large policy updates)
+  clip_range: 0.2
+
+  # Value function clipping
+  clip_range_vf: null # No VF clipping (SB3 default)
+
+  # Entropy coefficient (exploration bonus)
+  # Higher = more exploration, start with 0.01
+  ent_coef: 0.01
+
+  # Value function coefficient
+  vf_coef: 0.5
+
+  # Maximum gradient norm (gradient clipping)
+  max_grad_norm: 0.5
+
+  # Use cuda
+  device: "cuda"
+
+  # Normalize advantages
+  normalize_advantage: true
+
+# Policy Architecture
+policy:
+  # Use CNN policy for image observations
+  type: "CnnPolicy"
+
+  # Custom feature extractor settings
+  features_extractor:
+    # Nature CNN from DQN paper (proven for games)
+    architecture: "NatureCNN"
+    # Feature dimension
+    features_dim: 512
+
+# Learning Rate Schedule
+lr_schedule:
+  # Type: constant, linear, cosine
+  type: "constant"
+  # If linear/cosine, specify end value
+  end_value: 0.00001
+
+# Training Configuration
+training:
+  # Total timesteps to train
+  total_timesteps: 100000 # 100K steps for initial test
+
+  # Logging frequency (steps)
+  log_interval: 10
+
+  # Save checkpoint every N steps
+  save_freq: 50000
+
+  # Evaluate every N steps
+  eval_freq: 25000
+
+  # Number of evaluation episodes
+  n_eval_episodes: 10
+
+  # Keep top N best models
+  keep_n_best: 5
+
+  # Early stopping patience (evaluations without improvement)
+  early_stopping_patience: 20
+
+# TensorBoard Logging
+tensorboard:
+  enabled: true
+  log_dir: "./logs/tensorboard"
+
+# Checkpoint Settings
+checkpoints:
+  save_dir: "./logs/checkpoints"
+  save_best: true
+  save_replay_buffer: false # Not used by PPO
+
+# Vectorized Environments
+vectorized:
+  # Number of parallel environments
+  # Keep at 1 for mobile game (single device)
+  n_envs: 1
+  # Subproc vs Dummy (single env uses Dummy)
+  vec_env_type: "dummy"
+
+# Reproducibility
+seed: 42
+
+# GPU Memory Optimization
+gpu_optimization:
+  # Use mixed precision (FP16) if VRAM issues
+  use_fp16: false
+  # Clear GPU cache periodically
+  clear_cache_freq: 1000

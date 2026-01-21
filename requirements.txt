@@ -1,0 +1,36 @@
+# TowerBlox RL Agent - Dependencies
+# Created: 2026-01-21
+# Python 3.13+ compatible
+
+# Core ML Frameworks (CUDA 12.6)
+torch
+torchvision
+
+# Reinforcement Learning
+stable-baselines3
+gymnasium
+shimmy
+
+# Screen Capture & Mobile Automation
+opencv-python
+Pillow
+numpy
+
+# ADB Tools Enhancement (for faster frame capture)
+pure-python-adb
+
+# Configuration & Logging
+PyYAML
+tqdm
+tensorboard
+
+# Visualization & Monitoring
+matplotlib
+seaborn
+
+# GPU Monitoring
+pynvml
+
+# Utilities
+python-dotenv
+colorama
